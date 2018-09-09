@@ -1,0 +1,66 @@
+# Use Bash here
+
+# Setting up virtual environment
+mkdir env
+cd env
+
+# python 2:
+python -m virtualenv research
+
+# python 3:
+python -m venv research
+# Activate virtual environment and start notebook
+source env/research/bin/activate
+
+# Run notebook
+jupyter notebook
+
+# Run jupyterlab
+jupyter lab
+
+# Check open notebooks
+jupyter notebook list
+
+# Close notebook on port 8888
+jupyter notebook stop 8888
+# Port forwarding to hydra12
+ssh -L 8888:localhost:8888 ylu20@hydra12.eecs.utk.edu
+
+# Port forwarding to research.dmf.arm.gov
+ssh -L 8888:localhost:8888 yuping@research.dmf.arm.gov
+
+# Create alias
+alias jupyter='source /home/ylu20/research/bin/activate; jupyter notebook'
+# Install Anaconda
+bash Anaconda.sh
+
+# Install Miniconda
+bash Miniconda.sh
+# Install jupyter and jupyterlab from miniconda
+conda install jupyter
+conda install jupyterlab
+# Install pyart from conda
+conda update conda 
+conda install -c conda-forge arm_pyart 
+conda install basemap
+# option 1
+ssh -N -f -L 8888:localhost:8888 yuping@research.dmf.arm.gov
+# -N      Do not execute a remote command.  This is useful for just forwarding ports (protocol version 2
+#         only).
+# -f      Requests ssh to go to background just before command execution.  This is useful if ssh is going to
+#         ask for passwords or passphrases, but the user wants it in the background.  This implies -n.  The
+#         recommended way to start X11 programs at a remote site is with something like ssh -f host xterm.
+
+#         If the ExitOnForwardFailure configuration option is set to “yes”, then a client started with -f
+#         will wait for all remote port forwards to be successfully established before placing itself in the
+#         background.
+
+bash
+
+# option 1
+jupyter lab --no-browser --port=8888
+
+# option 2
+jupyter lab --no-browser --port=8888 &
+
+# We may create alias for these shell commands
