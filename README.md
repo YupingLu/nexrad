@@ -1,2 +1,2 @@
-# python_notes
-Personal Python Notes
+# NEXRAD data
+Scripts and notebooks to preprocess NEXRAD data
