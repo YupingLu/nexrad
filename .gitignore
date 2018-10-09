@@ -1,2 +1,2 @@
-
 *.ipynb
+!pyart_demo.ipynb
