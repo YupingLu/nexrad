@@ -47,8 +47,8 @@ f_n0x = open("name2/n0x.txt","w")
 
 # Loop the files
 for i in range(len(df_n0h.index)):
-    if i == 2:
-        break
+    #if i == 2:
+    #    break
     # Read each variable file
     N0H = pyart.io.read('data/'+df_n0h.iloc[i,0])
     N0C = pyart.io.read('data/'+df_n0c.iloc[i,0])
@@ -85,7 +85,7 @@ for i in range(len(df_n0h.index)):
             unmask_size = len(t_n0h)
             if unmask_size < 36:
                 f_abandon.write('Too few n0h: ' + df_n0h.iloc[i,0] \
-                                + ' ' + j + ' ' + k + '\n')
+                                + ' ' + str(j) + ' ' + str(k) + '\n')
                 continue
             # get the most frequent radar_echo_classification
             m = mode(t_n0h)
@@ -104,7 +104,7 @@ for i in range(len(df_n0h.index)):
             t_n0x = tmp_n0x.filled(tmp_n0x.mean())
             t_n0r = tmp_n0r.filled(tmp_n0r.mean())
             
-            # Save the generate matrix with np or pd
+            # Save the generate matrix with np
             n0c_name = 'n0c_' + str(i) + '_' + str(j) + '_' + str(k)
             n0k_name = 'n0k_' + str(i) + '_' + str(j) + '_' + str(k)
             n0x_name = 'n0x_' + str(i) + '_' + str(j) + '_' + str(k)
