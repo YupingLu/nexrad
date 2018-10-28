@@ -28,7 +28,8 @@ cnt = {
 }
 
 idx = [0, 60, 120, 180, 240, 300]
-idy = [0, 60, 120]
+#idy = [0, 60, 120]
+idy = [0]
 
 # Read data frames
 df_n0c = pd.read_csv('name/n0c.txt', header = None)
@@ -58,16 +59,46 @@ for i in range(len(df_n0h.index)):
     
     # Check variable dims. If not match, stop and record the variable filename
     # error.txt
-    data_n0h = N0H.fields['radar_echo_classification']['data']
-    data_n0c = N0C.fields['cross_correlation_ratio']['data']
-    data_n0k = N0K.fields['specific_differential_phase']['data']
-    data_n0r = N0R.fields['reflectivity']['data']
-    data_n0x = N0X.fields['differential_reflectivity']['data']
+    try:
+        data_n0h = N0H.fields['radar_echo_classification']['data']
+    except:
+        f_error.write('Error file: ' + df_n0h.iloc[i,0] + '\n')
+        continue
+    try:
+        data_n0c = N0C.fields['cross_correlation_ratio']['data']
+    except:
+        f_error.write('Error file: ' + df_n0c.iloc[i,0] + '\n')
+        continue
+    try:
+        data_n0k = N0K.fields['specific_differential_phase']['data']
+    except:
+        f_error.write('Error file: ' + df_n0k.iloc[i,0] + '\n')
+        continue
+    try:
+        data_n0r = N0R.fields['reflectivity']['data']
+    except:
+        f_error.write('Error file: ' + df_n0r.iloc[i,0] + '\n')
+        continue
+    try:
+        data_n0x = N0X.fields['differential_reflectivity']['data']
+    except:
+        f_error.write('Error file: ' + df_n0x.iloc[i,0] + '\n')
+        continue
     
-    if data_n0r.shape != (360, 230) or data_n0h.shape != (360, 1200) \
-        or data_n0c.shape != (360, 1200) or data_n0k.shape != (360, 1200) \
-        or data_n0x.shape != (360, 1200):
+    if data_n0r.shape != (360, 230):
+        f_error.write('Error dim: ' + df_n0r.iloc[i,0] + '\n')
+        continue
+    if data_n0h.shape != (360, 1200):
         f_error.write('Error dim: ' + df_n0h.iloc[i,0] + '\n')
+        continue
+    if data_n0c.shape != (360, 1200):
+        f_error.write('Error dim: ' + df_n0c.iloc[i,0] + '\n')
+        continue
+    if data_n0k.shape != (360, 1200):
+        f_error.write('Error dim: ' + df_n0k.iloc[i,0] + '\n')
+        continue 
+    if data_n0x.shape != (360, 1200):
+        f_error.write('Error dim: ' + df_n0x.iloc[i,0] + '\n')
         continue
         
     # Extend n0r
@@ -85,7 +116,7 @@ for i in range(len(df_n0h.index)):
             unmask_size = len(t_n0h)
             if unmask_size < 36:
                 f_abandon.write('Too few n0h: ' + df_n0h.iloc[i,0] \
-                                + ' ' + str(j) + ' ' + str(k) + '\n')
+                                + ' ' + str(r1) + ' ' + str(c1) + '\n')
                 continue
             # get the most frequent radar_echo_classification
             m = mode(t_n0h)
@@ -105,10 +136,10 @@ for i in range(len(df_n0h.index)):
             t_n0r = tmp_n0r.filled(tmp_n0r.mean())
             
             # Save the generate matrix with np
-            n0c_name = 'n0c_' + str(i) + '_' + str(j) + '_' + str(k)
-            n0k_name = 'n0k_' + str(i) + '_' + str(j) + '_' + str(k)
-            n0x_name = 'n0x_' + str(i) + '_' + str(j) + '_' + str(k)
-            n0r_name = 'n0r_' + str(i) + '_' + str(j) + '_' + str(k)
+            n0c_name = 'n0c_' + str(i) + '_' + str(r1) + '_' + str(c1)
+            n0k_name = 'n0k_' + str(i) + '_' + str(r1) + '_' + str(c1)
+            n0x_name = 'n0x_' + str(i) + '_' + str(r1) + '_' + str(c1)
+            n0r_name = 'n0r_' + str(i) + '_' + str(r1) + '_' + str(c1)
             
             np.savetxt('data2/' + n0c_name + '.csv', t_n0c, delimiter=",")
             np.savetxt('data2/' + n0k_name + '.csv', t_n0k, delimiter=",")
