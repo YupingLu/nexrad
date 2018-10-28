@@ -64,7 +64,9 @@ for i in range(len(df_n0h.index)):
     data_n0r = N0R.fields['reflectivity']['data']
     data_n0x = N0X.fields['differential_reflectivity']['data']
     
-    if data_n0r.shape != (360, 230) || data_n0h.shape != (360, 1200) || data_n0c.shape != (360, 1200) || data_n0k.shape != (360, 1200) || data_n0x.shape != (360, 1200):
+    if data_n0r.shape != (360, 230) or data_n0h.shape != (360, 1200) \
+        or data_n0c.shape != (360, 1200) or data_n0k.shape != (360, 1200) \
+        or data_n0x.shape != (360, 1200):
         f_error.write('Error dim: ' + df_n0h.iloc[i,0] + '\n')
         continue
         
@@ -82,7 +84,8 @@ for i in range(len(df_n0h.index)):
             t_n0h = tmp_n0h.compressed()
             unmask_size = len(t_n0h)
             if unmask_size < 36:
-                f_abandon.write('Too few n0h: ' + df_n0h.iloc[i,0] + ' ' + j + ' ' + k + '\n')
+                f_abandon.write('Too few n0h: ' + df_n0h.iloc[i,0] \
+                                + ' ' + j + ' ' + k + '\n')
                 continue
             # get the most frequent radar_echo_classification
             m = mode(t_n0h)
