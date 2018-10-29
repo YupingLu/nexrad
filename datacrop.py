@@ -51,39 +51,43 @@ for i in range(len(df_n0h.index)):
     #if i == 2:
     #    break
     # Read each variable file
-    N0H = pyart.io.read('data/'+df_n0h.iloc[i,0])
-    N0C = pyart.io.read('data/'+df_n0c.iloc[i,0])
-    N0K = pyart.io.read('data/'+df_n0k.iloc[i,0])
-    N0R = pyart.io.read('data/'+df_n0r.iloc[i,0])
-    N0X = pyart.io.read('data/'+df_n0x.iloc[i,0])
-    
+    try:
+        N0H = pyart.io.read('data/'+df_n0h.iloc[i,0])
+    except:
+        f_error.write('Error file: ' + df_n0h.iloc[i,0] + '\n')
+        continue
+        
+    try:
+        N0C = pyart.io.read('data/'+df_n0c.iloc[i,0])
+    except:
+        f_error.write('Error file: ' + df_n0c.iloc[i,0] + '\n')
+        continue
+        
+    try:
+        N0K = pyart.io.read('data/'+df_n0k.iloc[i,0])
+    except:
+        f_error.write('Error file: ' + df_n0k.iloc[i,0] + '\n')
+        continue
+        
+    try:
+        N0R = pyart.io.read('data/'+df_n0r.iloc[i,0])
+    except:
+        f_error.write('Error file: ' + df_n0r.iloc[i,0] + '\n')
+        continue
+        
+    try:
+        N0X = pyart.io.read('data/'+df_n0x.iloc[i,0])
+    except:
+        f_error.write('Error file: ' + df_n0x.iloc[i,0] + '\n')
+        continue  
+        
     # Check variable dims. If not match, stop and record the variable filename
     # error.txt
-    try:
-        data_n0h = N0H.fields['radar_echo_classification']['data']
-    except:
-        print('Error file: ' + df_n0h.iloc[i,0] + '\n')
-        continue
-    try:
-        data_n0c = N0C.fields['cross_correlation_ratio']['data']
-    except:
-        print('Error file: ' + df_n0c.iloc[i,0] + '\n')
-        continue
-    try:
-        data_n0k = N0K.fields['specific_differential_phase']['data']
-    except:
-        print('Error file: ' + df_n0k.iloc[i,0] + '\n')
-        continue
-    try:
-        data_n0r = N0R.fields['reflectivity']['data']
-    except:
-        print('Error file: ' + df_n0r.iloc[i,0] + '\n')
-        continue
-    try:
-        data_n0x = N0X.fields['differential_reflectivity']['data']
-    except:
-        print('Error file: ' + df_n0x.iloc[i,0] + '\n')
-        continue
+    data_n0h = N0H.fields['radar_echo_classification']['data']
+    data_n0c = N0C.fields['cross_correlation_ratio']['data']
+    data_n0k = N0K.fields['specific_differential_phase']['data']
+    data_n0r = N0R.fields['reflectivity']['data']
+    data_n0x = N0X.fields['differential_reflectivity']['data']
     
     if data_n0r.shape != (360, 230):
         f_error.write('Error dim: ' + df_n0r.iloc[i,0] + '\n')
