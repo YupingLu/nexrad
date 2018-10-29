@@ -62,27 +62,27 @@ for i in range(len(df_n0h.index)):
     try:
         data_n0h = N0H.fields['radar_echo_classification']['data']
     except:
-        f_error.write('Error file: ' + df_n0h.iloc[i,0] + '\n')
+        print('Error file: ' + df_n0h.iloc[i,0] + '\n')
         continue
     try:
         data_n0c = N0C.fields['cross_correlation_ratio']['data']
     except:
-        f_error.write('Error file: ' + df_n0c.iloc[i,0] + '\n')
+        print('Error file: ' + df_n0c.iloc[i,0] + '\n')
         continue
     try:
         data_n0k = N0K.fields['specific_differential_phase']['data']
     except:
-        f_error.write('Error file: ' + df_n0k.iloc[i,0] + '\n')
+        print('Error file: ' + df_n0k.iloc[i,0] + '\n')
         continue
     try:
         data_n0r = N0R.fields['reflectivity']['data']
     except:
-        f_error.write('Error file: ' + df_n0r.iloc[i,0] + '\n')
+        print('Error file: ' + df_n0r.iloc[i,0] + '\n')
         continue
     try:
         data_n0x = N0X.fields['differential_reflectivity']['data']
     except:
-        f_error.write('Error file: ' + df_n0x.iloc[i,0] + '\n')
+        print('Error file: ' + df_n0x.iloc[i,0] + '\n')
         continue
     
     if data_n0r.shape != (360, 230):
