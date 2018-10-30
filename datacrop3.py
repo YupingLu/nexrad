@@ -49,8 +49,8 @@ f_n0x = open("name2/n0x.txt","w")
 
 # Loop the files
 for i in range(len(df_n0h.index)):
-    if i == 2:
-        break
+    #if i == 2:
+    #    break
     # Read each variable file
     try:
         N0H = pyart.io.read('data/'+df_n0h.iloc[i,0])
@@ -116,8 +116,8 @@ for i in range(len(df_n0h.index)):
             c1 = idy[k]
             tmp_n0h = data_n0h[r1:r1+60, c1:c1+60]
             # mask 0, 10, 20, 140, 150
-            # If the valid values of n0h is less then 6
-            # abbdon.txt
+            # If the valid values of n0h is less then 6, abadon that entry.
+            # abadon.txt
             mx = ma.masked_values(tmp_n0h, 0.0) 
             mx = ma.masked_values(mx, 10.0) 
             mx = ma.masked_values(mx, 20.0)
@@ -133,7 +133,7 @@ for i in range(len(df_n0h.index)):
             m = mode(t_n0h)
             res = m[0][0]
             if res < 6:
-                f_abandon.write('Too few n0h: ' + df_n0h.iloc[i,0] \
+                f_abandon.write('Mode is small: ' + df_n0h.iloc[i,0] \
                                 + ' ' + str(r1) + ' ' + str(c1) + '\n')
                 continue
             cnt[res] += 1
