@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# Compute the mean of nexrad data
+# Compute the stdev of nexrad data
 # Author: Yuping Lu <yupinglu89@gmail.com>
-# Date: 11/06/2018
+# Date: 11/07/2018
 
 # load libs
 import numpy as np
@@ -10,7 +10,8 @@ import pandas as pd
 root = '/home/ylk/workspace/dataloader/data/'
 datasets = ['30', '40', '60', '80']
 
-means = np.zeros([4])
+stdevs = np.zeros([4])
+means = np.array([0.71055726712349121, 0.0050725965774866422, -3.5223700112752816, 0.26145971462057027])
 
 for data in datasets:
     df = pd.read_csv(root + data + '.txt', header = None)
@@ -21,6 +22,6 @@ for data in datasets:
         d = d.reshape((4, 60, 60))
         for j in range(4):
             pixel = d[j,:,:].ravel()
-            means[j] += np.sum(pixel)
+            stdevs[j] += np.sum((pixel - means[j])**2)
 
-print("means: {}".format(means/(15000*3600*4)))
+print("stdevs: {}".format(np.sqrt(stdevs / (15000*3600*4))))

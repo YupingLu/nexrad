@@ -15,8 +15,8 @@ total = []
 for data in datasets:
     df = pd.read_csv(root + data + '.txt', header = None)
     
-    #for i in range(len(df.index)):
-    for i in range(2):
+    for i in range(len(df.index)):
+    #for i in range(2):
         d = np.loadtxt(root + data + '/' + df.iloc[i,0], delimiter=',')
         d = d.reshape((4, 60, 60))
         total.append(d)
@@ -26,7 +26,7 @@ stdevs = []
 total = np.array(total)
 
 for i in range(4):
-    pixels = total[:][i][:][:].ravel()
+    pixels = total[:,i,:,:].ravel()
     print(pixels.shape)
     means.append(np.mean(pixels))
     stdevs.append(np.std(pixels))
