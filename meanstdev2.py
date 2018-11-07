@@ -27,7 +27,6 @@ for data in datasets:
 
 mean = []
 stdevs = []
-
 total = np.array(total)
 
 for i in range(4):
@@ -37,6 +36,5 @@ for i in range(4):
     stdevs.append(np.std(pixels))
 
 print("means: {}".format(means))
-
 print("means: {}".format(mean))
 print("stdevs: {}".format(stdevs))
