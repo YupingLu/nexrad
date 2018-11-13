@@ -1,2 +1,4 @@
 *.ipynb
+.ipynb_checkpoints
+notebook/.ipynb_checkpoints
 !nexrad_1.ipynb
