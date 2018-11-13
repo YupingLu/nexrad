@@ -1,4 +1,4 @@
 *.ipynb
-!.ipynb_checkpoints
-!notebook/.ipynb_checkpoints
-!nexrad_1.ipynb
+.ipynb_checkpoints
+notebook/.ipynb_checkpoints
+!notebook/nexrad_1.ipynb
