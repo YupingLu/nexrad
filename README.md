@@ -1,8 +1,6 @@
 # NEXRAD data classification with PyTorch
 
-# 30 Ice\ Crystals  
-# 40 Dry\ Snow  
-# 60 Rain
-# 80 Big\ Drops
+The NEXRAD Level III data used in this project are from Vance AFB, OK. Four categories are chosen and they are 'Ice Crystals', 'Dry Snow', 'Rain', and 'Big Drops'
 
-Scripts and notebooks to preprocess NEXRAD data
+Preprocessing scripts are in script folder.
+
