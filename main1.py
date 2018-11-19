@@ -14,7 +14,8 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from datasets.nexraddataset import *
-from models.alexnet import alexnet
+#from models.vgg import *
+from models.resnet import *
 
 def train(args, model, device, train_loader, optimizer, criterion, epoch):
     model.train()
@@ -25,12 +26,12 @@ def train(args, model, device, train_loader, optimizer, criterion, epoch):
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
-        '''
+        
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, (batch_idx + 1) * len(inputs), len(train_loader.dataset),
                 100. * (batch_idx + 1) / len(train_loader), loss.item()))
-        '''
+        
 
 def test(args, model, device, test_loader, criterion):
     model.eval()
@@ -111,14 +112,15 @@ def main():
     test_loader = DataLoader(testset, batch_size=args.test_batch_size, shuffle=False, **kwargs)
 
     print('==> Building model..')
-    model = alexnet(num_classes=4).to(device)
+    #model = vgg16(num_classes=4).to(device)
+    model = resnet18(num_classes=4).to(device)
     best_acc = 0 # best test accuracy
     start_epoch = args.start_epoch
     if args.resume:
         # Load checkpoint.
         print('==> Resuming from checkpoint..')
         assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-        checkpoint = torch.load('./checkpoint/pth.tar')
+        checkpoint = torch.load('./checkpoint/pth1.tar')
         model.load_state_dict(checkpoint['model'])
         best_acc = checkpoint['acc']
         start_epoch = checkpoint['epoch']
@@ -139,7 +141,7 @@ def main():
             }
             if not os.path.isdir('checkpoint'):
                 os.mkdir('checkpoint')
-            torch.save(state, './checkpoint/pth.tar')
+            torch.save(state, './checkpoint/pth1.tar')
             best_acc = acc
 
 if __name__ == '__main__':
