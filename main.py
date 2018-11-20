@@ -2,19 +2,21 @@
 '''
 Training script for NEXRAD
 Copyright (c) Yuping Lu <yupinglu89@gmail.com>, 2018
-Last Update: 11/15/2018
+Last Update: 11/19/2018
 '''
 # load libs
 import os
 import argparse
 import random
+import time
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from datasets.nexraddataset import *
-from models.alexnet import alexnet
+import models
 
 def train(args, model, device, train_loader, optimizer, criterion, epoch):
     model.train()
@@ -25,12 +27,12 @@ def train(args, model, device, train_loader, optimizer, criterion, epoch):
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
-        '''
+        
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, (batch_idx + 1) * len(inputs), len(train_loader.dataset),
                 100. * (batch_idx + 1) / len(train_loader), loss.item()))
-        '''
+        
 
 def test(args, model, device, test_loader, criterion):
     model.eval()
@@ -52,14 +54,24 @@ def test(args, model, device, test_loader, criterion):
     return acc
 
 def main():
-    parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
+    model_names = sorted(name for name in models.__dict__
+        if name.islower() and not name.startswith("__")
+        and callable(models.__dict__[name]))
+    
+    parser = argparse.ArgumentParser(description='PyTorch NEXRAD Training')
+    # Model options
+    parser.add_argument('--arch', '-a', metavar='ARCH', default='resnet18',
+                        choices=model_names,
+                        help='model architecture: ' +
+                             ' | '.join(model_names) +
+                            ' (default: resnet18)')
     # Optimization options
-    parser.add_argument('--batch-size', type=int, default=100, metavar='N',
-                        help='input batch size for training (default: 100)')
-    parser.add_argument('--test-batch-size', type=int, default=100, metavar='N',
-                        help='input batch size for testing (default: 100)')
-    parser.add_argument('--epochs', type=int, default=10, metavar='N',
-                        help='number of epochs to train (default: 10)')
+    parser.add_argument('--batch-size', type=int, default=128, metavar='N',
+                        help='input batch size for training (default: 128)')
+    parser.add_argument('--test-batch-size', type=int, default=128, metavar='N',
+                        help='input batch size for testing (default: 128)')
+    parser.add_argument('--epochs', type=int, default=450, metavar='N',
+                        help='number of epochs to train (default: 450)')
     parser.add_argument('--start-epoch', type=int, default=1, metavar='N',
                         help='resume epoch (default: 1')
     parser.add_argument('--lr', type=float, default=0.1, metavar='LR',
@@ -67,7 +79,7 @@ def main():
     parser.add_argument('--momentum', type=float, default=0.9, metavar='M',
                         help='SGD momentum (default: 0.9)')
     parser.add_argument('--weight-decay', type=float, default=5e-4, metavar='W',
-                        help='weight decay (default: 5e-1)')
+                        help='weight decay (default: 1e-4)')
     #Device options
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
@@ -110,37 +122,55 @@ def main():
     testset = NexradDataset(root='/home/ylk/workspace/dataloader/test/', transform=data_transform)
     test_loader = DataLoader(testset, batch_size=args.test_batch_size, shuffle=False, **kwargs)
 
-    print('==> Building model..')
-    model = alexnet(num_classes=4).to(device)
+    print("==> Building model '{}'".format(args.arch))
+    model = models.__dict__[args.arch](num_classes=4).to(device)
+
     best_acc = 0 # best test accuracy
     start_epoch = args.start_epoch
-    if args.resume:
-        # Load checkpoint.
-        print('==> Resuming from checkpoint..')
-        assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-        checkpoint = torch.load('./checkpoint/pth.tar')
-        model.load_state_dict(checkpoint['model'])
-        best_acc = checkpoint['acc']
-        start_epoch = checkpoint['epoch']
     
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
-
+    
+    # Load checkpoint.
+    if args.resume:
+        print('==> Resuming from checkpoint..')
+        assert os.path.isfile('./checkpoint/' + args.arch + '.pth.tar'), 'Error: no checkpoint found!'
+        checkpoint = torch.load('./checkpoint/' + args.arch + '.pth.tar')
+        model.load_state_dict(checkpoint['model'])
+        best_acc = checkpoint['acc']
+        start_epoch = checkpoint['epoch']
+        optimizer.load_state_dict(checkpoint['optimizer'])
+    
     for epoch in range(start_epoch, args.epochs + start_epoch):
+        adjust_learning_rate(optimizer, epoch, args)
+        '''
+        # check learning rate
+        for param_group in optimizer.param_groups:
+            print(param_group['lr'])
+            break
+        '''
         train(args, model, device, train_loader, optimizer, criterion, epoch)
         acc = test(args, model, device, test_loader, criterion)
         # Save checkpoint.
         if acc > best_acc:
             print('Saving..')
             state = {
+                'epoch': epoch + 1,
+                'arch': args.arch,
                 'model': model.state_dict(),
                 'acc': acc,
-                'epoch': epoch,
+                'optimizer': optimizer.state_dict(),
             }
             if not os.path.isdir('checkpoint'):
                 os.mkdir('checkpoint')
-            torch.save(state, './checkpoint/pth.tar')
+            torch.save(state, './checkpoint/' + args.arch + '.pth.tar')
             best_acc = acc
 
+def adjust_learning_rate(optimizer, epoch, args):
+    """Sets the learning rate to the initial LR decayed by 10 every 150 epochs"""
+    lr = args.lr * (0.1 ** ((epoch-1) // 150))
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+            
 if __name__ == '__main__':
     main()
