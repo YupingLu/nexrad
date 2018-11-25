@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 '''
 Training script for NEXRAD
-Training set: 100,000 Validation set: 10,000 Test set: 10,000
 Copyright (c) Yuping Lu <yupinglu89@gmail.com>, 2018
-Last Update: 11/25/2018
+Last Update: 11/19/2018
+Dataset: dir 0 only, 50000 training files and 10000 validation files
 '''
 # load libs
 from __future__ import print_function
@@ -61,15 +61,15 @@ def train(args, model, device, train_loader, optimizer, criterion, epoch):
           'Accuracy: {}/{}\t'
           '{:.3f}'.format(train_loss, correct, len(train_loader.dataset), acc))
     
-def validation(args, model, device, validation_loader, criterion):
+def test(args, model, device, test_loader, criterion):
     
     model.eval()
-    validation_loss = 0
+    test_loss = 0
     correct = 0
     acc = 0
     
     with torch.no_grad():
-        for data in validation_loader:
+        for data in test_loader:
             inputs, labels = data['radar'].to(device), data['category'].to(device)
             
             # compute output
@@ -77,17 +77,17 @@ def validation(args, model, device, validation_loader, criterion):
             loss = criterion(outputs, labels)
             
             # measure accuracy and record loss   
-            validation_loss += loss.item() # sum up batch loss
+            test_loss += loss.item() # sum up batch loss
             pred = outputs.max(1)[1] # get the index of the max log-probability
             correct += pred.eq(labels).sum().item()
     
     # print average loss and accuracy
-    validation_loss /= len(validation_loader)
-    acc = 100. * correct / len(validation_loader.dataset)
-    print('Validation set: Average loss:\t'
+    test_loss /= len(test_loader)
+    acc = 100. * correct / len(test_loader.dataset)
+    print('Test set: Average loss:\t'
           '{:.3f}\t'
           'Accuracy: {}/{}\t'
-          '{:.3f}'.format(validation_loss, correct, len(validation_loader.dataset), acc))
+          '{:.3f}'.format(test_loss, correct, len(test_loader.dataset), acc))
     
     return acc
 
@@ -106,8 +106,8 @@ def main():
     # Optimization options
     parser.add_argument('--batch-size', type=int, default=128, metavar='N',
                         help='input batch size for training (default: 128)')
-    parser.add_argument('--validation-batch-size', type=int, default=128, metavar='N',
-                        help='input batch size for validation (default: 128)')
+    parser.add_argument('--test-batch-size', type=int, default=128, metavar='N',
+                        help='input batch size for testing (default: 128)')
     parser.add_argument('--epochs', type=int, default=450, metavar='N',
                         help='number of epochs to train (default: 450)')
     parser.add_argument('--start-epoch', type=int, default=1, metavar='N',
@@ -150,20 +150,20 @@ def main():
     
     data_transform = transforms.Compose([
         ToTensor(),
-        Normalize(mean=[0.7207, 0.0029, -1.6154, 0.5690],
-                  std=[0.1592, 0.0570, 12.1113, 2.2363])
+        Normalize(mean=[0.71055727, 0.00507260, -3.52237001, 0.26145971],
+                  std=[0.16087105, 0.06199139, 13.40004994, 2.2214379])
     ])
 
-    trainset = NexradDataset(root='/home/ylk/data/dataloader/train/', transform=data_transform)
+    trainset = NexradDataset(root='/home/ylk/workspace/dataloader/train/', transform=data_transform)
     train_loader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True, **kwargs)
 
-    validationset = NexradDataset(root='/home/ylk/data/dataloader/validation/', transform=data_transform)
-    validation_loader = DataLoader(validationset, batch_size=args.validation_batch_size, shuffle=False, **kwargs)
+    testset = NexradDataset(root='/home/ylk/workspace/dataloader/test/', transform=data_transform)
+    test_loader = DataLoader(testset, batch_size=args.test_batch_size, shuffle=False, **kwargs)
 
     eprint("==> Building model '{}'".format(args.arch))
     model = models.__dict__[args.arch](num_classes=4).to(device)
 
-    best_acc = 0 # best validation accuracy
+    best_acc = 0 # best test accuracy
     start_epoch = args.start_epoch
     
     criterion = nn.CrossEntropyLoss()
@@ -188,7 +188,7 @@ def main():
             break
         '''
         train(args, model, device, train_loader, optimizer, criterion, epoch)
-        acc = validation(args, model, device, validation_loader, criterion)
+        acc = test(args, model, device, test_loader, criterion)
         # Save checkpoint.
         if acc > best_acc:
             eprint('Saving..')
