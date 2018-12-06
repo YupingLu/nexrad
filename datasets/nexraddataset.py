@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 # Nexrad dataset class
 # Author: Yuping Lu <yupinglu89@gmail.com>
-# Date: 11/13/2018
+# Last Update: 11/30/2018
 
 # load libs
 import os
+import random
 import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
+
+__all__ = ["NexradDataset", "RandomHorizontalFlip", "RandomVerticalFlip", "ToTensor", "Normalize"]
 
 class NexradDataset(Dataset):
     """ NEXRAD dataset. """
@@ -50,6 +53,35 @@ class NexradDataset(Dataset):
 			
         return sample
 
+class RandomHorizontalFlip(object):
+    """Horizontally flip the given dataset randomly with a given probability.
+    Args:
+        p (float): probability of the dataset being flipped. Default value is 0.5
+    """
+
+    def __init__(self, p=0.5):
+        self.p = p
+
+    def __call__(self, sample):
+        if random.random() < self.p:
+            sample['radar'] = np.copy(np.flip(sample['radar'], 2))
+        return sample
+
+class RandomVerticalFlip(object):
+    """Vertically flip the given dataset randomly with a given probability.
+    Args:
+        p (float): probability of the dataset being flipped. Default value is 0.5
+    """
+
+    def __init__(self, p=0.5):
+        self.p = p
+
+    def __call__(self, sample):
+        if random.random() < self.p:
+            sample['radar'] = np.copy(np.flip(sample['radar'], 1))
+        return sample
+
+    
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 

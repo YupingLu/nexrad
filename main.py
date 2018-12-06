@@ -3,7 +3,7 @@
 Training script for NEXRAD
 Training set: 100,000 Validation set: 10,000 Test set: 10,000
 Copyright (c) Yuping Lu <yupinglu89@gmail.com>, 2018
-Last Update: 11/25/2018
+Last Update: 11/30/2018
 '''
 # load libs
 from __future__ import print_function
@@ -148,16 +148,24 @@ def main():
     device = torch.device("cuda" if use_cuda else "cpu")
     kwargs = {'num_workers': 4, 'pin_memory': True} if use_cuda else {}
     
-    data_transform = transforms.Compose([
+    train_transform = transforms.Compose([
+        RandomHorizontalFlip(),
+        RandomVerticalFlip(),
+        ToTensor(),
+        Normalize(mean=[0.7207, 0.0029, -1.6154, 0.5690],
+                  std=[0.1592, 0.0570, 12.1113, 2.2363])
+    ])
+    
+    validation_transform = transforms.Compose([
         ToTensor(),
         Normalize(mean=[0.7207, 0.0029, -1.6154, 0.5690],
                   std=[0.1592, 0.0570, 12.1113, 2.2363])
     ])
 
-    trainset = NexradDataset(root='/home/ylk/data/dataloader/train/', transform=data_transform)
+    trainset = NexradDataset(root='/home/ylk/data/dataloader/train/', transform=train_transform)
     train_loader = DataLoader(trainset, batch_size=args.batch_size, shuffle=True, **kwargs)
 
-    validationset = NexradDataset(root='/home/ylk/data/dataloader/validation/', transform=data_transform)
+    validationset = NexradDataset(root='/home/ylk/data/dataloader/validation/', transform=validation_transform)
     validation_loader = DataLoader(validationset, batch_size=args.validation_batch_size, shuffle=False, **kwargs)
 
     eprint("==> Building model '{}'".format(args.arch))
