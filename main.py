@@ -199,7 +199,7 @@ def main():
         acc = validation(args, model, device, validation_loader, criterion)
         # Save checkpoint.
         if acc > best_acc:
-            eprint('Saving..')
+            eprint('Saving...{}'.format(acc))
             state = {
                 'epoch': epoch + 1,
                 'arch': args.arch,
