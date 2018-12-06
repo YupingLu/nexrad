@@ -3,7 +3,7 @@
 Training script for NEXRAD
 Training set: 100,000 Validation set: 10,000 Test set: 10,000
 Copyright (c) Yuping Lu <yupinglu89@gmail.com>, 2018
-Last Update: 11/30/2018
+Last Update: 12/06/2018
 '''
 # load libs
 from __future__ import print_function
@@ -104,20 +104,20 @@ def main():
                              ' | '.join(model_names) +
                             ' (default: resnet18)')
     # Optimization options
-    parser.add_argument('--batch-size', type=int, default=128, metavar='N',
-                        help='input batch size for training (default: 128)')
-    parser.add_argument('--validation-batch-size', type=int, default=128, metavar='N',
-                        help='input batch size for validation (default: 128)')
-    parser.add_argument('--epochs', type=int, default=450, metavar='N',
-                        help='number of epochs to train (default: 450)')
+    parser.add_argument('--batch-size', type=int, default=256, metavar='N',
+                        help='input batch size for training (default: 256)')
+    parser.add_argument('--validation-batch-size', type=int, default=256, metavar='N',
+                        help='input batch size for validation (default: 256)')
+    parser.add_argument('--epochs', type=int, default=600, metavar='N',
+                        help='number of epochs to train (default: 600)')
     parser.add_argument('--start-epoch', type=int, default=1, metavar='N',
                         help='resume epoch (default: 1')
-    parser.add_argument('--lr', type=float, default=0.1, metavar='LR',
-                        help='learning rate (default: 0.1)')
+    parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
+                        help='learning rate (default: 0.01)')
     parser.add_argument('--momentum', type=float, default=0.9, metavar='M',
                         help='SGD momentum (default: 0.9)')
     parser.add_argument('--weight-decay', type=float, default=5e-4, metavar='W',
-                        help='weight decay (default: 1e-4)')
+                        help='weight decay (default: 5e-4)')
     #Device options
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
@@ -213,8 +213,8 @@ def main():
             best_acc = acc
 
 def adjust_learning_rate(optimizer, epoch, args):
-    """Sets the learning rate to the initial LR decayed by 10 every 150 epochs"""
-    lr = args.lr * (0.1 ** ((epoch-1) // 150))
+    """Sets the learning rate to the initial LR decayed by 10 every 200 epochs"""
+    lr = args.lr * (0.1 ** ((epoch-1) // 200))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
             
