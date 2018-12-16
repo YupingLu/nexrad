@@ -5,7 +5,7 @@ Only use portion of the input data for training.
 Goal is to find the best hyper parameters for training
 Training set: 10,000 Validation set: 10,000 Test set: 10,000
 Copyright (c) Yuping Lu <yupinglu89@gmail.com>, 2018
-Last Update: 12/06/2018
+Last Update: 12/16/2018
 '''
 # load libs
 from __future__ import print_function
@@ -180,10 +180,14 @@ def main():
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
     
     # Load checkpoint.
+    if args.checkpoint != 'checkpoint_less':
+        cp = args.checkpoint
+    else:
+        cp = './checkpoint_less/' + args.arch + '.pth.tar'
     if args.resume:
         eprint('==> Resuming from checkpoint..')
-        assert os.path.isfile('./checkpoint_less/' + args.arch + '.pth.tar'), 'Error: no checkpoint found!'
-        checkpoint = torch.load('./checkpoint_less/' + args.arch + '.pth.tar')
+        assert os.path.isfile(cp), 'Error: no checkpoint found!'
+        checkpoint = torch.load(cp)
         model.load_state_dict(checkpoint['model'])
         best_acc = checkpoint['acc']
         start_epoch = checkpoint['epoch']
@@ -209,9 +213,7 @@ def main():
                 'acc': acc,
                 'optimizer': optimizer.state_dict(),
             }
-            if not os.path.isdir('checkpoint_less'):
-                os.mkdir('checkpoint_less')
-            torch.save(state, './checkpoint_less/' + args.arch + '.pth.tar')
+            torch.save(state, cp)
             best_acc = acc
 
 def adjust_learning_rate(optimizer, epoch, args):
