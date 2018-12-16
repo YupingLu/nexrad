@@ -126,8 +126,8 @@ def main():
     parser.add_argument('--gpu-id', type=str, default='3', metavar='N',
                         help='id(s) for CUDA_VISIBLE_DEVICES (default: 3)')
     # Miscs
-    parser.add_argument('--seed', type=int, default=2018, metavar='S',
-                        help='random seed (default: 2018)')
+    parser.add_argument('--seed', type=int, default=20181212, metavar='S',
+                        help='random seed (default: 20181212)')
     parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                         help='how many batches to wait before logging training status')
     # Checkpoint
