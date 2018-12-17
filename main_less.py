@@ -5,7 +5,7 @@ Only use portion of the input data for training.
 Goal is to find the best hyper parameters for training
 Training set: 10,000 Validation set: 10,000 Test set: 10,000
 Copyright (c) Yuping Lu <yupinglu89@gmail.com>, 2018
-Last Update: 12/16/2018
+Last Update: 12/17/2018
 '''
 # load libs
 from __future__ import print_function
@@ -116,6 +116,8 @@ def main():
                         help='resume epoch (default: 1')
     parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
                         help='learning rate (default: 0.01)')
+    parser.add_argument('--lr-decay', type=float, default=0.1, metavar='LRD',
+                        help='learning rate decay (default: 0.1)')
     parser.add_argument('--momentum', type=float, default=0.9, metavar='M',
                         help='SGD momentum (default: 0.9)')
     parser.add_argument('--weight-decay', type=float, default=5e-4, metavar='W',
@@ -217,8 +219,8 @@ def main():
             best_acc = acc
 
 def adjust_learning_rate(optimizer, epoch, args):
-    """Sets the learning rate to the initial LR decayed by 10 every 200 epochs"""
-    lr = args.lr * (0.1 ** ((epoch-1) // 200))
+    """Sets the learning rate to the initial LR decayed every 200 epochs"""
+    lr = args.lr * (args.lr_decay ** ((epoch-1) // 200))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
             
