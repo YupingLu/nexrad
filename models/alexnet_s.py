@@ -1,17 +1,17 @@
 '''
-LuNet for NEXRAD. 
+Alexnet for NEXRAD. 
 Alexnet with smaller parameters
 '''
 import torch.nn as nn
 
 
-__all__ = ['LuNet','lunet']
+__all__ = ['AlexNet_S','alexnet_s']
 
 
-class LuNet(nn.Module):
+class AlexNet_S(nn.Module):
 
     def __init__(self, num_classes=4):
-        super(LuNet, self).__init__()
+        super(AlexNet_S, self).__init__()
         self.features = nn.Sequential(
             nn.Conv2d(4, 32, kernel_size=4, stride=2, padding=2),
             nn.ReLU(inplace=True),
@@ -44,6 +44,6 @@ class LuNet(nn.Module):
         return x
 
     
-def lunet(**kwargs):
-    model = LuNet(**kwargs)
+def alexnet_s(**kwargs):
+    model = AlexNet_S(**kwargs)
     return model
