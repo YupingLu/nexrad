@@ -5,7 +5,7 @@ Only use portion of the input data for training.
 Goal is to find the best hyper parameters for training
 Training set: 10,000 Validation set: 10,000 Test set: 10,000
 Copyright (c) Yuping Lu <yupinglu89@gmail.com>, 2018
-Last Update: 12/17/2018
+Last Update: 12/19/2018
 '''
 # load libs
 from __future__ import print_function
@@ -153,6 +153,7 @@ def main():
     kwargs = {'num_workers': 4, 'pin_memory': True} if use_cuda else {}
     
     train_transform = transforms.Compose([
+        RandomCrop(padding=7),
         RandomHorizontalFlip(),
         RandomVerticalFlip(),
         ToTensor(),

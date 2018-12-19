@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Nexrad dataset class
 # Author: Yuping Lu <yupinglu89@gmail.com>
-# Last Update: 12/06/2018
+# Last Update: 12/19/2018
 
 # load libs
 import os
@@ -11,7 +11,7 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 
-__all__ = ["NexradDataset", "RandomHorizontalFlip", "RandomVerticalFlip", "ToTensor", "Normalize"]
+__all__ = ["NexradDataset", "RandomHorizontalFlip", "RandomVerticalFlip", "ToTensor", "Normalize", "RandomCrop"]
 
 class NexradDataset(Dataset):
     """ NEXRAD dataset. """
@@ -94,6 +94,7 @@ class ToTensor(object):
 
 class Normalize(object):
     """Normalize a tensor radar with mean and standard deviation."""
+
     def __init__(self, mean, std):
         self.mean = mean
         self.std = std
@@ -102,4 +103,25 @@ class Normalize(object):
         for t, m, s in zip(sample['radar'], self.mean, self.std):
             t.sub_(m).div_(s)
         return sample
-    
+
+class RandomCrop(object):
+    """Crop the given dataset at a random location."""
+
+    def __init__(self, padding=0):
+        self.padding = padding
+
+    def __call__(self, sample):
+        """
+        Args: Dataset to be cropped.
+        Returns: Cropped dataset.
+        """
+        radar = sample['radar']
+        if self.padding > 0:
+            radar = np.pad(radar, ((0,),(self.padding,),(self.padding,)), 'mean')
+
+        i = random.randint(0, self.padding*2-1)
+        j = random.randint(0, self.padding*2-1)
+
+        sample['radar'] = radar[:, i:i+60, j:j+60]
+
+        return sample
