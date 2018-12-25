@@ -108,8 +108,8 @@ def main():
                         help='input batch size for training (default: 256)')
     parser.add_argument('--validation-batch-size', type=int, default=256, metavar='N',
                         help='input batch size for validation (default: 256)')
-    parser.add_argument('--epochs', type=int, default=600, metavar='N',
-                        help='number of epochs to train (default: 600)')
+    parser.add_argument('--epochs', type=int, default=1200, metavar='N',
+                        help='number of epochs to train (default: 1200)')
     parser.add_argument('--start-epoch', type=int, default=1, metavar='N',
                         help='resume epoch (default: 1')
     parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
