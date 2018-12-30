@@ -143,14 +143,14 @@ def datacrop(n0h, n0c, n0k, n0r, n0x):
             if unmask_size < 12:
                 eprint('Too few n0h: ' + n0h \
                                 + ' ' + str(r1) + ' ' + str(c1) + '\n')
-                sys.exit(-1)
+                continue
             # get the most frequent radar_echo_classification
             m = mode(t_n0h)
             res = m[0][0]
             if res < 6:
                 eprint('Mode is small: ' + n0h \
                                 + ' ' + str(r1) + ' ' + str(c1) + '\n')
-                sys.exit(-1)
+                continue
             
             tmp_n0c = data_n0c[r1:r1+60, c1:c1+60]
             tmp_n0k = data_n0k[r1:r1+60, c1:c1+60]
