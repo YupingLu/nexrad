@@ -5,7 +5,7 @@ Different from test.py. This script is meant to test the raw four variable files
 Currently, this script only measures idx = [0, 60, 120, 180, 240, 300] idy = [0, 60] 
 for each variable file.
 Copyright (c) Yuping Lu <yupinglu89@gmail.com>, 2018
-Last Update: 12/27/2018
+Last Update: 12/31/2018
 '''
 # load libs
 from __future__ import print_function
@@ -57,6 +57,9 @@ def test(args, model, device, test_loader, criterion):
           '{:.3f}\t'
           'Accuracy: {}/{}\t'
           '{:.3f}'.format(test_loss, correct, len(test_loader.dataset), acc))
+
+    # np matrix to store the classification results
+    #res = np.empty()
 
 # Crop the file into 12 60*60 matrices
 def datacrop(n0h, n0c, n0k, n0r, n0x):
@@ -122,9 +125,6 @@ def datacrop(n0h, n0c, n0k, n0r, n0x):
 
     # Extend n0r
     data_n0r_repeat = np.repeat(data_n0r, 5, axis=1)
-
-    # np matrix to store the classification results
-    #res = np.empty()
 
     for j in range(len(idx)):
         for k in range(len(idy)):
