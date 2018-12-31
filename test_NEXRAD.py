@@ -24,7 +24,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from datasets.nexraddatasettest import *
+from datasets.nexraddataset import *
 import models
 
 def eprint(*args, **kwargs):
@@ -124,7 +124,7 @@ def datacrop(n0h, n0c, n0k, n0r, n0x):
     data_n0r_repeat = np.repeat(data_n0r, 5, axis=1)
 
     # np matrix to store the classification results
-    res = np.empty()
+    #res = np.empty()
 
     for j in range(len(idx)):
         for k in range(len(idy)):
@@ -164,12 +164,12 @@ def datacrop(n0h, n0c, n0k, n0r, n0x):
             t_n0r = tmp_n0r.filled(tmp_n0r.mean())
             
             # Combine 4 2d array into 1 3d array
-            f = open('./tmp_test/'+cnt[res]+'/'+r1+c1+'.csv', 'wb')
-
-            np.savetxt(f, n0c, delimiter=',')
-            np.savetxt(f, n0k, delimiter=',')
-            np.savetxt(f, n0r, delimiter=',')
-            np.savetxt(f, n0x, delimiter=',')
+            f = open('/home/ylk/github/nexrad/tmp_test/'+cnt[res]+'/'+str(r1)+str(c1)+'.csv', 'wb')
+            
+            np.savetxt(f, t_n0c, delimiter=',')
+            np.savetxt(f, t_n0k, delimiter=',')
+            np.savetxt(f, t_n0r, delimiter=',')
+            np.savetxt(f, t_n0x, delimiter=',')
 
             f.close()
             # Save results
@@ -231,8 +231,8 @@ def main():
         Normalize(mean=[0.7207, 0.0029, -1.6154, 0.5690],
                   std=[0.1592, 0.0570, 12.1113, 2.2363])
     ])
-
-    testset = NexradDataset(root='./tmp_test/', transform=transform)
+    
+    testset = NexradDataset(root='/home/ylk/github/nexrad/tmp_test/', transform=transform)
     test_loader = DataLoader(testset, batch_size=args.batch_size, shuffle=False, **kwargs)
 
     model = models.__dict__[args.arch](num_classes=4).to(device)
@@ -246,6 +246,6 @@ def main():
     model.load_state_dict(checkpoint['model'])
     
     test(args, model, device, test_loader, criterion)
-            
+    
 if __name__ == '__main__':
     main()

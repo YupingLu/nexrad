@@ -16,7 +16,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from datasets.nexraddatasettest import *
+from datasets.nexraddataset import *
 import models
 
 def eprint(*args, **kwargs):
