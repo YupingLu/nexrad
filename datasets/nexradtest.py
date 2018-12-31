@@ -16,7 +16,7 @@ __all__ = ["NexradDataset", "RandomHorizontalFlip", "RandomVerticalFlip", "ToTen
 class NexradDataset(Dataset):
     """ NEXRAD dataset. """
     
-    def __init__(self, root, transform=None):
+    def __init__(self, path, label, transform=None):
         """
         Args:
             root (string): Directory with all the nexrad data.
