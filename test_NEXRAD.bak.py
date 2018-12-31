@@ -24,7 +24,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from datasets.nexradtest import *
+from datasets.nexraddataset import *
 import models
 
 def eprint(*args, **kwargs):
@@ -62,7 +62,7 @@ def test(args, model, device, test_loader, criterion):
     #res = np.empty()
 
 # Crop the file into 12 60*60 matrices
-def datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args):
+def datacrop(n0h, n0c, n0k, n0r, n0x):
     cnt = {
         30 : 'Ice Crystals', # Ice Crystals (IC) #
         40 : 'Dry Snow', # Dry Snow (DS) #
@@ -164,7 +164,7 @@ def datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args):
             t_n0r = tmp_n0r.filled(tmp_n0r.mean())
             
             # Combine 4 2d array into 1 3d array
-            f = open('/home/ylk/github/nexrad/tmp_test/'+str(r1)+str(c1)+'.csv', 'wb')
+            f = open('/home/ylk/github/nexrad/tmp_test/'+cnt[res]+'/'+str(r1)+str(c1)+'.csv', 'wb')
             
             np.savetxt(f, t_n0c, delimiter=',')
             np.savetxt(f, t_n0k, delimiter=',')
@@ -172,22 +172,6 @@ def datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args):
             np.savetxt(f, t_n0x, delimiter=',')
 
             f.close()
-
-            testset = NexradDataset(root='/home/ylk/github/nexrad/tmp_test/'+str(r1)+str(c1)+'.csv', transform=transform)
-            test_loader = DataLoader(testset, batch_size=args.batch_size, shuffle=False, **kwargs)
-
-            model = models.__dict__[args.arch](num_classes=4).to(device)
-            
-            criterion = nn.CrossEntropyLoss()
-            
-            # Load saved models.
-            eprint("==> Loading model '{}'".format(args.arch))
-            assert os.path.isfile(args.path), 'Error: no checkpoint found!'
-            checkpoint = torch.load(args.path)
-            model.load_state_dict(checkpoint['model'])
-            
-            test(args, model, device, test_loader, criterion)
-
             # Save results
             # res[r1:r1+60, c1:c1+60] = classification
 
@@ -228,6 +212,8 @@ def main():
     n0r = '/home/ylk/data/test_nexrad/processed/KOUN_SDUS54_N0RVNX_201801011620'
     n0x = '/home/ylk/data/test_nexrad/processed/KOUN_SDUS84_N0XVNX_201801011620'
 
+    datacrop(n0h, n0c, n0k, n0r, n0x)
+
     # Use CUDA
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
     use_cuda = not args.no_cuda and torch.cuda.is_available()
@@ -246,7 +232,20 @@ def main():
                   std=[0.1592, 0.0570, 12.1113, 2.2363])
     ])
     
-    datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args)
+    testset = NexradDataset(root='/home/ylk/github/nexrad/tmp_test/', transform=transform)
+    test_loader = DataLoader(testset, batch_size=args.batch_size, shuffle=False, **kwargs)
+
+    model = models.__dict__[args.arch](num_classes=4).to(device)
+    
+    criterion = nn.CrossEntropyLoss()
+    
+    # Load saved models.
+    eprint("==> Loading model '{}'".format(args.arch))
+    assert os.path.isfile(args.path), 'Error: no checkpoint found!'
+    checkpoint = torch.load(args.path)
+    model.load_state_dict(checkpoint['model'])
+    
+    test(args, model, device, test_loader, criterion)
     
 if __name__ == '__main__':
     main()
