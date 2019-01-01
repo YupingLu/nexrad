@@ -58,18 +58,36 @@ def test(args, model, device, test_loader, criterion):
           'Accuracy: {}/{}\t'
           '{:.3f}'.format(test_loss, correct, len(test_loader.dataset), acc))
 
-    # np matrix to store the classification results
-    #res = np.empty()
+# Call trained model to classify cropped matrices
+def classify(path, label, transform, device, kwargs, args):
+    testset = NexradDataset(path, label, transform=transform)
+    test_loader = DataLoader(testset, batch_size=args.batch_size, shuffle=False, **kwargs)
+    
+    model = models.__dict__[args.arch](num_classes=4).to(device)
+    criterion = nn.CrossEntropyLoss()
+
+    # Load saved models.
+    eprint("==> Loading model '{}'".format(args.arch))
+    assert os.path.isfile(args.path), 'Error: no checkpoint found!'
+    checkpoint = torch.load(args.path)
+    model.load_state_dict(checkpoint['model'])
+
+    test(args, model, device, test_loader, criterion)
 
 # Crop the file into 12 60*60 matrices
 def datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args):
+    # np matrix to store the classification results
+    #res = np.empty()
+    
     cnt = {
         30 : 'Ice Crystals', # Ice Crystals (IC) #
         40 : 'Dry Snow', # Dry Snow (DS) #
         60 : 'Rain', # Light and/or Moderate Rain (RA) #
         80 : 'Big Drops', # Big Drops (rain) (BD) #
     }
-
+    
+    cat2idx = {'Big Drops': 0, 'Dry Snow': 1, 'Ice Crystals': 2, 'Rain': 3}
+    
     idx = [0, 60, 120, 180, 240, 300]
     idy = [0, 60]
 
@@ -164,29 +182,16 @@ def datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args):
             t_n0r = tmp_n0r.filled(tmp_n0r.mean())
             
             # Combine 4 2d array into 1 3d array
-            f = open('/home/ylk/github/nexrad/tmp_test/'+str(r1)+str(c1)+'.csv', 'wb')
-            
+            fname = '/home/ylk/github/nexrad/tmp_test/'+str(r1)+str(c1)+'.csv'
+            f = open(fname, 'wb')
             np.savetxt(f, t_n0c, delimiter=',')
             np.savetxt(f, t_n0k, delimiter=',')
             np.savetxt(f, t_n0r, delimiter=',')
             np.savetxt(f, t_n0x, delimiter=',')
-
             f.close()
-
-            testset = NexradDataset(root='/home/ylk/github/nexrad/tmp_test/'+str(r1)+str(c1)+'.csv', transform=transform)
-            test_loader = DataLoader(testset, batch_size=args.batch_size, shuffle=False, **kwargs)
-
-            model = models.__dict__[args.arch](num_classes=4).to(device)
             
-            criterion = nn.CrossEntropyLoss()
-            
-            # Load saved models.
-            eprint("==> Loading model '{}'".format(args.arch))
-            assert os.path.isfile(args.path), 'Error: no checkpoint found!'
-            checkpoint = torch.load(args.path)
-            model.load_state_dict(checkpoint['model'])
-            
-            test(args, model, device, test_loader, criterion)
+            # classify the file
+            classify(fname, cat2idx[cnt[res]], transform, device, kwargs, args)
 
             # Save results
             # res[r1:r1+60, c1:c1+60] = classification

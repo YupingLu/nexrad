@@ -22,18 +22,12 @@ class NexradDataset(Dataset):
             root (string): Directory with all the nexrad data.
             transform (callable, optional): Optional transform to be applied on a sample.
         """
-        self.root = root
-        self.categories = sorted(['Big Drops', 'Dry Snow', 'Ice Crystals', 'Rain'])
-        self.cat2idx = dict(zip(self.categories, range(len(self.categories))))
-        self.idx2cat = dict(zip(self.cat2idx.values(), self.cat2idx.keys()))
         self.files = []
 
         o = {}
-        o['radar_path'] = root
-        o['category'] = self.cat2idx[root[root.rfind('/')+1:]]
+        o['radar_path'] = path
+        o['category'] = label
         self.files.append(o)
-        
-        print(files)
                     
         self.transform = transform
     
