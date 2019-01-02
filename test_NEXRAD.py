@@ -5,21 +5,21 @@ Different from test.py. This script is meant to test the raw four variable files
 Currently, this script only measures idx = [0, 60, 120, 180, 240, 300] idy = [0, 60] 
 for each variable file.
 Copyright (c) Yuping Lu <yupinglu89@gmail.com>, 2018
-Last Update: 12/31/2018
+Last Update: 1/2/2019
 '''
 # load libs
 from __future__ import print_function
 import sys
-
 import pyart
 from scipy.stats import mode
 import numpy as np
 import numpy.ma as ma
-
+import matplotlib
+import matplotlib.pyplot as plt
+matplotlib.rcParams['figure.figsize'] = [35.0, 35.0]
 import os
 import argparse
 import random
-
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -27,11 +27,13 @@ from torchvision import transforms
 from datasets.nexradtest import *
 import models
 
+idx = [0, 60, 120, 180, 240, 300]
+idy = [0, 60]
+
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 def test(args, model, device, test_loader, criterion):
-    
     model.eval()
     test_loss = 0
     correct = 0
@@ -40,11 +42,9 @@ def test(args, model, device, test_loader, criterion):
     with torch.no_grad():
         for data in test_loader:
             inputs, labels = data['radar'].to(device), data['category'].to(device)
-            
             # compute output
             outputs = model(inputs)
             loss = criterion(outputs, labels)
-            
             # measure accuracy and record loss   
             test_loss += loss.item() # sum up batch loss
             pred = outputs.max(1)[1] # get the index of the max log-probability
@@ -81,18 +81,13 @@ def classify(path, label, transform, device, kwargs, args):
 def datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args):
     # np matrix to store the classification results
     results = np.zeros((360, 120))
-    
     cnt = {
         30 : 'Ice Crystals', # Ice Crystals (IC) #
         40 : 'Dry Snow', # Dry Snow (DS) #
         60 : 'Rain', # Light and/or Moderate Rain (RA) #
         80 : 'Big Drops', # Big Drops (rain) (BD) #
     }
-    
     cat2idx = {'Big Drops': 0, 'Dry Snow': 1, 'Ice Crystals': 2, 'Rain': 3}
-    
-    idx = [0, 60, 120, 180, 240, 300]
-    idy = [0, 60]
 
     # read data
     try:
@@ -185,7 +180,7 @@ def datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args):
             t_n0r = tmp_n0r.filled(tmp_n0r.mean())
             
             # Combine 4 2d array into 1 3d array
-            fname = '/home/ylk/github/nexrad/tmp_test/'+str(r1)+str(c1)+'.csv'
+            fname = './tmp_test/'+str(r1)+str(c1)+'.csv'
             f = open(fname, 'wb')
             np.savetxt(f, t_n0c, delimiter=',')
             np.savetxt(f, t_n0k, delimiter=',')
@@ -195,11 +190,61 @@ def datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args):
             
             # classify the file
             acc = classify(fname, cat2idx[cnt[res]], transform, device, kwargs, args)
-
             # Save results
             results[r1:r1+60, c1:c1+60] = acc
     
     return results
+
+# Save the visualization of classification results
+def viz_res(n, vname):
+    N = pyart.io.read(n)
+    display = pyart.graph.RadarMapDisplay(N)
+    x = N.fields[vname]['data']
+    
+    m = np.zeros_like(x)
+    m[:,120:]=1
+    y = np.ma.masked_array(x, m)
+    N.fields[vname]['data'] = y
+
+    fig = plt.figure(figsize=(6, 5))
+    
+    ax = fig.add_subplot(111)
+    display.plot(vname, 0, title=vname, colorbar_label='', ax=ax)
+    display.set_limits(xlim=(-40, 40), ylim=(-40, 40), ax=ax)
+    plt.show();
+
+    fig.savefig("./tmp_test/"+vname+".png", bbox_inches='tight')
+
+# Visualize the classification results
+def plot_res(n0h, n0c, n0k, n0r, n0x, results):
+    viz_res(n0h, 'radar_echo_classification')
+    viz_res(n0c, 'cross_correlation_ratio')
+    viz_res(n0k, 'specific_differential_phase')
+    viz_res(n0r, 'reflectivity')
+    viz_res(n0x, 'differential_reflectivity')
+    
+    N0H = pyart.io.read(n0h)
+    display_h = pyart.graph.RadarMapDisplay(N0H)
+    data_n0h = N0H.fields['radar_echo_classification']['data']
+    
+    m = np.zeros_like(data_n0h)
+    m[:,120:]=1
+    y = np.ma.masked_array(data_n0h, m)
+    for j in range(len(idx)):
+        for k in range(len(idy)):
+            r1 = idx[j]
+            c1 = idy[k]
+            y[r1:r1+60, c1:c1+60] = results[r1:r1+60, c1:c1+60] 
+    N0H.fields['radar_echo_classification']['data'] = y
+
+    fig = plt.figure(figsize=(6, 5))
+
+    ax = fig.add_subplot(111)
+    display_h.plot('radar_echo_classification', 0, title='classification results', colorbar_label='', ax=ax)
+    display_h.set_limits(xlim=(-40, 40), ylim=(-40, 40), ax=ax)
+    plt.show();
+
+    fig.savefig("./tmp_test/res.png", bbox_inches='tight')
 
 def main():
     model_names = sorted(name for name in models.__dict__
@@ -257,7 +302,7 @@ def main():
     results = datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args)
     
     # Visualize the classification results
-    print(results)
+    plot_res(n0h, n0c, n0k, n0r, n0x, results)
     
 if __name__ == '__main__':
     main()
