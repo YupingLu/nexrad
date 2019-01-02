@@ -5,4 +5,5 @@ datasets/__pycache__
 notebook/.ipynb_checkpoints
 checkpoint
 !notebook/nexrad_1.ipynb
+!notebook/result_viz.ipynb
 .DS_Store
