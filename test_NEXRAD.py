@@ -51,12 +51,15 @@ def test(args, model, device, test_loader, criterion):
             correct += pred.eq(labels).sum().item()
     
     # print average loss and accuracy
+    '''
     test_loss /= len(test_loader)
     acc = 100. * correct / len(test_loader.dataset)
     print('Test set: Average loss:\t'
           '{:.3f}\t'
           'Accuracy: {}/{}\t'
           '{:.3f}'.format(test_loss, correct, len(test_loader.dataset), acc))
+    '''
+    return correct / len(test_loader.dataset)
 
 # Call trained model to classify cropped matrices
 def classify(path, label, transform, device, kwargs, args):
@@ -67,17 +70,17 @@ def classify(path, label, transform, device, kwargs, args):
     criterion = nn.CrossEntropyLoss()
 
     # Load saved models.
-    eprint("==> Loading model '{}'".format(args.arch))
+    #eprint("==> Loading model '{}'".format(args.arch))
     assert os.path.isfile(args.path), 'Error: no checkpoint found!'
     checkpoint = torch.load(args.path)
     model.load_state_dict(checkpoint['model'])
 
-    test(args, model, device, test_loader, criterion)
+    return test(args, model, device, test_loader, criterion)
 
 # Crop the file into 12 60*60 matrices
 def datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args):
     # np matrix to store the classification results
-    #res = np.empty()
+    results = np.zeros((360, 120))
     
     cnt = {
         30 : 'Ice Crystals', # Ice Crystals (IC) #
@@ -191,12 +194,12 @@ def datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args):
             f.close()
             
             # classify the file
-            classify(fname, cat2idx[cnt[res]], transform, device, kwargs, args)
+            acc = classify(fname, cat2idx[cnt[res]], transform, device, kwargs, args)
 
             # Save results
-            # res[r1:r1+60, c1:c1+60] = classification
-
-#Visualize the classification results
+            results[r1:r1+60, c1:c1+60] = acc
+    
+    return results
 
 def main():
     model_names = sorted(name for name in models.__dict__
@@ -251,7 +254,10 @@ def main():
                   std=[0.1592, 0.0570, 12.1113, 2.2363])
     ])
     
-    datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args)
+    results = datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args)
+    
+    # Visualize the classification results
+    print(results)
     
 if __name__ == '__main__':
     main()
