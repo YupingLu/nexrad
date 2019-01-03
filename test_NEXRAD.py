@@ -29,6 +29,13 @@ import models
 
 idx = [0, 60, 120, 180, 240, 300]
 idy = [0, 60]
+cnt = {
+    30 : 'Ice Crystals', # Ice Crystals (IC) #
+    40 : 'Dry Snow', # Dry Snow (DS) #
+    60 : 'Rain', # Light and/or Moderate Rain (RA) #
+    80 : 'Big Drops', # Big Drops (rain) (BD) #
+}
+cat2idx = {'Big Drops': 0, 'Dry Snow': 1, 'Ice Crystals': 2, 'Rain': 3}
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -38,6 +45,7 @@ def test(args, model, device, test_loader, criterion):
     test_loss = 0
     correct = 0
     acc = 0
+    r = 0
     
     with torch.no_grad():
         for data in test_loader:
@@ -48,6 +56,7 @@ def test(args, model, device, test_loader, criterion):
             # measure accuracy and record loss   
             test_loss += loss.item() # sum up batch loss
             pred = outputs.max(1)[1] # get the index of the max log-probability
+            r = pred.item()
             correct += pred.eq(labels).sum().item()
     
     # print average loss and accuracy
@@ -81,13 +90,6 @@ def classify(path, label, transform, device, kwargs, args):
 def datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args):
     # np matrix to store the classification results
     results = np.zeros((360, 120))
-    cnt = {
-        30 : 'Ice Crystals', # Ice Crystals (IC) #
-        40 : 'Dry Snow', # Dry Snow (DS) #
-        60 : 'Rain', # Light and/or Moderate Rain (RA) #
-        80 : 'Big Drops', # Big Drops (rain) (BD) #
-    }
-    cat2idx = {'Big Drops': 0, 'Dry Snow': 1, 'Ice Crystals': 2, 'Rain': 3}
 
     # read data
     try:
@@ -202,7 +204,7 @@ def viz_res(n, vname):
     x = N.fields[vname]['data']
     
     m = np.zeros_like(x)
-    m[:,120:]=1
+    m[:,120:] = 1
     y = np.ma.masked_array(x, m)
     N.fields[vname]['data'] = y
 
@@ -223,25 +225,26 @@ def plot_res(n0h, n0c, n0k, n0r, n0x, results):
     viz_res(n0r, 'reflectivity')
     viz_res(n0x, 'differential_reflectivity')
     
-    N0H = pyart.io.read(n0h)
-    display_h = pyart.graph.RadarMapDisplay(N0H)
-    data_n0h = N0H.fields['radar_echo_classification']['data']
+    N0C = pyart.io.read(n0c)
+    display_c = pyart.graph.RadarMapDisplay(N0C)
+    data_n0c = N0C.fields['cross_correlation_ratio']['data']
     
-    m = np.zeros_like(data_n0h)
-    m[:,120:]=1
-    y = np.ma.masked_array(data_n0h, m)
+    m = np.zeros_like(data_n0c)
+    m[:,120:] = 1
+    y = np.ma.masked_array(data_n0c, m)
     for j in range(len(idx)):
         for k in range(len(idy)):
             r1 = idx[j]
             c1 = idy[k]
-            y[r1:r1+60, c1:c1+60] = results[r1:r1+60, c1:c1+60] 
-    N0H.fields['radar_echo_classification']['data'] = y
+            y[r1:r1+60, c1:c1+60] = results[r1:r1+60, c1:c1+60]
+
+    N0C.fields['cross_correlation_ratio']['data'] = y
 
     fig = plt.figure(figsize=(6, 5))
-
+    
     ax = fig.add_subplot(111)
-    display_h.plot('radar_echo_classification', 0, title='classification results', colorbar_label='', ax=ax)
-    display_h.set_limits(xlim=(-40, 40), ylim=(-40, 40), ax=ax)
+    display_c.plot('cross_correlation_ratio', 0, title='classification results', colorbar_label='', ax=ax)
+    display_c.set_limits(xlim=(-40, 40), ylim=(-40, 40), ax=ax)
     plt.show();
 
     fig.savefig("./tmp_test/res.png", bbox_inches='tight')
@@ -300,7 +303,7 @@ def main():
     ])
     
     results = datacrop(n0h, n0c, n0k, n0r, n0x, transform, device, kwargs, args)
-    
+
     # Visualize the classification results
     plot_res(n0h, n0c, n0k, n0r, n0x, results)
     
