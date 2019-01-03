@@ -36,6 +36,7 @@ cnt = {
     80 : 'Big Drops', # Big Drops (rain) (BD) #
 }
 cat2idx = {'Big Drops': 0, 'Dry Snow': 1, 'Ice Crystals': 2, 'Rain': 3}
+idx2cat = {0: 80, 1: 40, 2: 30, 3: 60}
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -68,7 +69,8 @@ def test(args, model, device, test_loader, criterion):
           'Accuracy: {}/{}\t'
           '{:.3f}'.format(test_loss, correct, len(test_loader.dataset), acc))
     '''
-    return correct / len(test_loader.dataset)
+    #return correct / len(test_loader.dataset)
+    return idx2cat[r]
 
 # Call trained model to classify cropped matrices
 def classify(path, label, transform, device, kwargs, args):
@@ -217,34 +219,58 @@ def viz_res(n, vname):
 
     fig.savefig("./tmp_test/"+vname+".png", bbox_inches='tight')
 
+def viz_ress(n, vname):
+    N = pyart.io.read(n)
+    display = pyart.graph.RadarMapDisplay(N)
+    x = N.fields[vname]['data']
+    
+    m = np.zeros_like(x)
+    m[:,120:] = 1
+    y = np.ma.masked_array(x, m)
+    y = ma.masked_values(y, 0.0) 
+    y = ma.masked_values(y, 10.0) 
+    y = ma.masked_values(y, 20.0)
+    y = ma.masked_values(y, 140.0) 
+    y = ma.masked_values(y, 150.0) 
+    N.fields[vname]['data'] = y
+
+    fig = plt.figure(figsize=(6, 5))
+    
+    ax = fig.add_subplot(111)
+    display.plot(vname, 0, title=vname, colorbar_label='', ax=ax, vmin=0, vmax=100)
+    display.set_limits(xlim=(-40, 40), ylim=(-40, 40), ax=ax)
+    plt.show();
+
+    fig.savefig("./tmp_test/"+vname+".png", bbox_inches='tight')
+
 # Visualize the classification results
 def plot_res(n0h, n0c, n0k, n0r, n0x, results):
-    viz_res(n0h, 'radar_echo_classification')
+    viz_ress(n0h, 'radar_echo_classification')
     viz_res(n0c, 'cross_correlation_ratio')
     viz_res(n0k, 'specific_differential_phase')
     viz_res(n0r, 'reflectivity')
     viz_res(n0x, 'differential_reflectivity')
     
-    N0C = pyart.io.read(n0c)
-    display_c = pyart.graph.RadarMapDisplay(N0C)
-    data_n0c = N0C.fields['cross_correlation_ratio']['data']
+    N0H = pyart.io.read(n0h)
+    display_h = pyart.graph.RadarMapDisplay(N0H)
+    data_n0h = N0H.fields['radar_echo_classification']['data']
     
-    m = np.zeros_like(data_n0c)
+    m = np.zeros_like(data_n0h)
     m[:,120:] = 1
-    y = np.ma.masked_array(data_n0c, m)
+    y = np.ma.masked_array(data_n0h, m)
     for j in range(len(idx)):
         for k in range(len(idy)):
             r1 = idx[j]
             c1 = idy[k]
             y[r1:r1+60, c1:c1+60] = results[r1:r1+60, c1:c1+60]
 
-    N0C.fields['cross_correlation_ratio']['data'] = y
+    N0H.fields['radar_echo_classification']['data'] = y
 
     fig = plt.figure(figsize=(6, 5))
     
     ax = fig.add_subplot(111)
-    display_c.plot('cross_correlation_ratio', 0, title='classification results', colorbar_label='', ax=ax)
-    display_c.set_limits(xlim=(-40, 40), ylim=(-40, 40), ax=ax)
+    display_h.plot('radar_echo_classification', 0, title='classification results', colorbar_label='', ax=ax, vmin=0, vmax=100)
+    display_h.set_limits(xlim=(-40, 40), ylim=(-40, 40), ax=ax)
     plt.show();
 
     fig.savefig("./tmp_test/res.png", bbox_inches='tight')
