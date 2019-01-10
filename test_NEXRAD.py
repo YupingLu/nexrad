@@ -5,7 +5,7 @@ Different from test.py. This script is meant to test the raw four variable files
 Currently, this script only measures idx = [0, 60, 120, 180, 240, 300] idy = [0, 60] 
 for each variable file.
 Copyright (c) Yuping Lu <yupinglu89@gmail.com>, 2018
-Last Update: 1/2/2019
+Last Update: 1/10/2019
 '''
 # load libs
 from __future__ import print_function
@@ -207,7 +207,7 @@ def viz_res(n, vname):
     
     m = np.zeros_like(x)
     m[:,120:] = 1
-    y = np.ma.masked_array(x, m)
+    y = ma.masked_array(x, m)
     N.fields[vname]['data'] = y
 
     fig = plt.figure(figsize=(6, 5))
@@ -226,7 +226,7 @@ def viz_ress(n, vname):
     
     m = np.zeros_like(x)
     m[:,120:] = 1
-    y = np.ma.masked_array(x, m)
+    y = ma.masked_array(x, m)
     y = ma.masked_values(y, 0.0) 
     y = ma.masked_values(y, 10.0) 
     y = ma.masked_values(y, 20.0)
@@ -257,7 +257,13 @@ def plot_res(n0h, n0c, n0k, n0r, n0x, results):
     
     m = np.zeros_like(data_n0h)
     m[:,120:] = 1
-    y = np.ma.masked_array(data_n0h, m)
+    y = ma.masked_array(data_n0h, m)
+    y = ma.masked_values(y, 0.0) 
+    y = ma.masked_values(y, 10.0) 
+    y = ma.masked_values(y, 20.0)
+    y = ma.masked_values(y, 140.0) 
+    y = ma.masked_values(y, 150.0)
+    results = ma.masked_where(ma.getmask(y[:,:120]), results)
     for j in range(len(idx)):
         for k in range(len(idy)):
             r1 = idx[j]
