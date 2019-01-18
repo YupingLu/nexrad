@@ -16,6 +16,7 @@ import numpy as np
 import numpy.ma as ma
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 matplotlib.rcParams['figure.figsize'] = [35.0, 35.0]
 import os
 import argparse
@@ -27,17 +28,8 @@ from torchvision import transforms
 from datasets.nexradtest import *
 import models
 
-def discrete_cmap(N, base_cmap=None):
-    """Create an N-bin discrete colormap from the specified input map"""
-
-    # Note that if base_cmap is a string or None, you can simply do
-    #    return plt.cm.get_cmap(base_cmap, N)
-    # The following works for string, None, or a colormap instance:
-
-    base = plt.cm.get_cmap(base_cmap)
-    color_list = base(np.linspace(0, 1, N))
-    cmap_name = base.name + str(N)
-    return base.from_list(cmap_name, color_list, N)
+#discrete color scheme
+cMap = ListedColormap(['red', 'blue', 'yellow','green'])
 
 idx = [0, 60, 120, 180, 240, 300]
 idy = [0, 60]
@@ -288,7 +280,7 @@ def plot_res(n0h, n0c, n0k, n0r, n0x, results):
     fig = plt.figure(figsize=(6, 5))
     
     ax = fig.add_subplot(111)
-    display_h.plot('radar_echo_classification', 0, title='classification results', colorbar_label='', ticks=range(4), ticklabs=['Big Drops', 'Dry Snow', 'Ice Crystals', 'Rain'], ax=ax, vmin=-0.5, vmax=3.5, cmap=discrete_cmap(4, 'rainbow'))
+    display_h.plot('radar_echo_classification', 0, title='classification results', colorbar_label='', ax=ax, vmin=0, vmax=3, cmap=cMap)
     #display_h.plot('radar_echo_classification', 0, title='classification results', colorbar_label='', ax=ax, cmap=cMap)
     display_h.set_limits(xlim=(-40, 40), ylim=(-40, 40), ax=ax)
     plt.show();
