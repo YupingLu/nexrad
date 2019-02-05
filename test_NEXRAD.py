@@ -245,12 +245,18 @@ def viz_ress(n, vname):
     y = ma.masked_values(y, 20.0)
     y = ma.masked_values(y, 140.0) 
     y = ma.masked_values(y, 150.0) 
+
+    y = np.where(y == 80, 0, y)
+    y = np.where(y == 40, 1, y)
+    y = np.where(y == 30, 2, y)
+    y = np.where(y == 60, 3, y)
+
     N.fields[vname]['data'] = y
 
     fig = plt.figure(figsize=(6, 5))
     
     ax = fig.add_subplot(111)
-    display.plot(vname, 0, title=vname, colorbar_label='', ax=ax, vmin=0, vmax=100)
+    display.plot(vname, 0, title=vname, colorbar_label='', ticks=range(4), ticklabs=['Big Drops', 'Dry Snow', 'Ice Crystals', 'Rain'], ax=ax, vmin=-0.5, vmax=3.5, cmap=discrete_cmap(4, 'rainbow'))
     display.set_limits(xlim=(-40, 40), ylim=(-40, 40), ax=ax)
     plt.show();
 
@@ -258,11 +264,12 @@ def viz_ress(n, vname):
 
 # Visualize the classification results
 def plot_res(n0h, n0c, n0k, n0r, n0x, results):
-    viz_ress(n0h, 'radar_echo_classification')
     viz_res(n0c, 'cross_correlation_ratio')
     viz_res(n0k, 'specific_differential_phase')
     viz_res(n0r, 'reflectivity')
     viz_res(n0x, 'differential_reflectivity')
+
+    viz_ress(n0h, 'radar_echo_classification')
     
     N0H = pyart.io.read(n0h)
     display_h = pyart.graph.RadarMapDisplay(N0H)
