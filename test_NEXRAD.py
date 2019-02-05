@@ -243,6 +243,10 @@ def viz_ress(n, vname):
     y = ma.masked_values(y, 0.0) 
     y = ma.masked_values(y, 10.0) 
     y = ma.masked_values(y, 20.0)
+    y = ma.masked_values(y, 50.0)
+    y = ma.masked_values(y, 70.0)
+    y = ma.masked_values(y, 90.0)
+    y = ma.masked_values(y, 100.0)
     y = ma.masked_values(y, 140.0) 
     y = ma.masked_values(y, 150.0) 
 
@@ -250,12 +254,14 @@ def viz_ress(n, vname):
     y = np.where(y == 40, 1, y)
     y = np.where(y == 30, 2, y)
     y = np.where(y == 60, 3, y)
+    y = ma.masked_where(y > 3, y)
 
     N.fields[vname]['data'] = y
 
     fig = plt.figure(figsize=(6, 5))
     
     ax = fig.add_subplot(111)
+    #display.plot(vname, 0, title=vname, colorbar_label='', ax=ax)
     display.plot(vname, 0, title=vname, colorbar_label='', ticks=range(4), ticklabs=['Big Drops', 'Dry Snow', 'Ice Crystals', 'Rain'], ax=ax, vmin=-0.5, vmax=3.5, cmap=discrete_cmap(4, 'rainbow'))
     display.set_limits(xlim=(-40, 40), ylim=(-40, 40), ax=ax)
     plt.show();
